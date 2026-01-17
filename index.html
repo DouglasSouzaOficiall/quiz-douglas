@@ -3,249 +3,204 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Quiz Master - Enel Brasil</title>
+    <title>Quiz Master - Douglas Souza</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Poppins:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --enel-verde: #009b3a; --enel-azul: #0047bb; --enel-amarelo: #facc15; }
-        body { font-family: 'Poppins', sans-serif; background-color: var(--enel-azul); color: white; overflow: hidden; height: 100vh; }
+        body { font-family: 'Poppins', sans-serif; background-color: #1a0633; color: white; overflow: hidden; height: 100vh; width: 100vw; }
         .font-game { font-family: 'Luckiest Guy', cursive; }
-
-        /* TESTEIRA SEM BORDAS BRANCAS */
-        .header-banner { 
-            height: 120px; 
-            background: #fff url('testeira.jpg') no-repeat center center; 
-            background-size: cover; 
-            border-bottom: 8px solid var(--enel-amarelo);
-            width: 100%;
-        }
-
-        /* ANIMAÇÕES FLUIDAS */
-        @keyframes slideIn { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-fluid { animation: slideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
-
-        /* BOTÕES 3D DA PRIMEIRA VERSÃO */
-        .btn-game {
-            transition: all 0.1s;
-            border-bottom: 10px solid rgba(0,0,0,0.3);
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
-            cursor: pointer;
-        }
-        .btn-game:active { transform: translateY(5px); border-bottom-width: 2px; }
-
-        /* ORGANIZAÇÃO DAS ALTERNATIVAS */
-        .alt-btn {
-            transition: all 0.2s;
-            background: white;
-            color: #1e293b;
-            border-radius: 30px;
-            padding: 20px 30px;
-            font-size: 1.8rem;
-            font-weight: 900;
-            box-shadow: 0 8px 0px #cbd5e1;
-            display: flex; align-items: center;
-            width: 100%;
-            border: 4px solid transparent;
-        }
-        .alt-btn:hover { transform: scale(1.01); }
-        .selected-alt { border-color: var(--enel-verde) !important; background: #f0fdf4 !important; box-shadow: 0 8px 0px #166534 !important; }
-
-        /* CRONOMETRO GIGANTE CENTRAL */
-        #timer-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 1000; backdrop-filter: blur(5px);
-        }
-        .timer-circle {
-            width: 300px; height: 300px; border: 15px solid var(--enel-amarelo);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            background: white; box-shadow: 0 0 50px var(--enel-amarelo);
-        }
-
-        /* MODAIS DE SISTEMA (ESTILO DOUGLAS) */
-        .modal-container {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            display: flex; align-items: center; justify-content: center; z-index: 2000;
-        }
-        .modal-content {
-            background: white; padding: 50px; rounded-[60px]; border: 12px solid var(--enel-amarelo);
-            max-width: 500px; width: 90%; text-align: center; box-shadow: 0 20px 0px rgba(0,0,0,0.2);
-        }
-
+        .btn-side { transition: all 0.1s; border-bottom: 4px solid rgba(0,0,0,0.3); text-transform: uppercase; font-weight: 900; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; }
+        .btn-side:active { transform: translateY(2px); border-bottom-width: 0; }
+        .header-banner { height: 100px; background-color: #f8fafc; background-image: url('testeira.jpg'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-bottom: 4px solid #facc15; display: flex; align-items: center; justify-content: center; width: 100%; }
+        .alt-btn { transition: all 0.2s; border: 3px solid #e2e8f0; text-align: left; height: 75px; color: #1e293b; background-color: white; border-radius: 25px; display: flex; align-items: center; padding: 0 25px; font-size: 1.6rem; font-weight: 800; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; cursor: pointer; }
+        .selected-alt { border-color: #a855f7 !important; background-color: #f3e8ff !important; color: #6b21a8 !important; transform: scale(1.02); }
+        .correct-visual { background-color: #22c55e !important; color: white !important; border-color: #15803d !important; animation: pulse 0.5s infinite; }
+        .wrong-visual { background-color: #ef4444 !important; color: white !important; border-color: #991b1b !important; animation: shake 0.4s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+        @keyframes pulse { 0% { transform: scale(1.02); } 50% { transform: scale(1.05); } 100% { transform: scale(1.02); } }
+        .status-card { position: fixed; top: 120px; right: 30px; z-index: 50; background: white; padding: 30px; border-radius: 45px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 8px solid #facc15; display: flex; flex-direction: column; align-items: center; width: 220px; transition: all 0.5s ease; }
+        .special-card { border-color: #ef4444; background: #fff1f2; top: 120px; width: 220px; text-align: center; }
+        .card-left { left: 30px !important; right: auto !important; }
+        .panic-mode { animation: panic 0.15s infinite; border-color: #ff0000 !important; box-shadow: 0 0 50px #ff0000; }
+        @keyframes panic { from { transform: translate(2px, 2px); } to { transform: translate(-2px, -2px); } }
+        .timer-circle-mega { transition: stroke-dashoffset 1s linear; transform: rotate(-90deg); transform-origin: 50% 50%; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body class="select-none flex flex-col">
 
-    <div id="section-intro" class="h-screen w-full flex items-center justify-center bg-black fixed inset-0 z-[3000]">
+    <audio id="snd-tick" src="tick.mp3"></audio>
+    <audio id="snd-alarm" src="alarm.mp3"></audio>
+    <audio id="snd-tension" src="tension.mp3"></audio>
+    <audio id="snd-correct" src="correct.mp3"></audio>
+    <audio id="snd-wrong" src="wrong.mp3"></audio>
+    <audio id="snd-win" src="victory.mp3"></audio>
+
+    <div id="section-intro" class="h-screen w-full flex items-center justify-center bg-black fixed inset-0 z-[150]">
         <video id="video-intro" class="w-full h-full object-cover" playsinline><source src="intro.mp4" type="video/mp4"></video>
-        <button onclick="ativarEIniciar()" class="absolute bottom-12 bg-yellow-400 text-green-800 px-16 py-6 rounded-full text-5xl font-game btn-game border-4 border-white animate-bounce">JOGAR AGORA</button>
+        <button onclick="ativarEIniciar()" class="absolute bottom-12 bg-yellow-400 text-purple-900 px-12 py-5 rounded-full text-3xl font-game border-4 border-white animate-bounce">INICIAR JOGO</button>
     </div>
 
-    <div id="section-cadastro" class="hidden h-screen w-full flex flex-col items-center justify-center bg-[#064e3b] fixed inset-0 z-[2500]">
-        <div class="bg-white p-12 rounded-[70px] border-[15px] border-yellow-400 w-full max-w-2xl text-center shadow-2xl animate-fluid">
-            <img src="logo_Brasil_cmyk.png" class="mx-auto mb-10 max-h-48">
-            <h1 class="text-4xl font-game mb-10 text-green-700 uppercase">Configuração do Quiz</h1>
-            <input type="text" id="input-escola" placeholder="NOME DO EVENTO" class="w-full p-6 rounded-3xl text-black text-3xl mb-6 text-center font-bold border-4 border-slate-100 uppercase focus:border-blue-500 outline-none">
-            <div class="grid grid-cols-2 gap-6">
-                <input type="text" id="input-timeA" placeholder="TIME AZUL" class="p-6 rounded-3xl text-black text-2xl border-b-[12px] border-blue-600 text-center font-bold uppercase outline-none bg-slate-50">
-                <input type="text" id="input-timeB" placeholder="TIME VERMELHO" class="p-6 rounded-3xl text-black text-2xl border-b-[12px] border-red-600 text-center font-bold uppercase outline-none bg-slate-50">
+    <div id="section-cadastro" class="hidden h-screen w-full flex flex-col items-center justify-center bg-purple-900 p-6 fixed inset-0 z-[100]">
+        <div class="bg-white/10 p-10 rounded-[40px] border-2 border-white/20 w-full max-w-xl text-center">
+            <h1 class="text-4xl font-game mb-8 text-yellow-400">CONFIGURAÇÃO</h1>
+            <input type="text" id="input-escola" placeholder="NOME DO EVENTO" class="w-full p-5 rounded-2xl text-black text-2xl mb-4 text-center font-bold uppercase">
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="input-timeA" placeholder="TIME AZUL" class="p-5 rounded-2xl text-black text-xl border-b-8 border-blue-500 text-center font-bold uppercase">
+                <input type="text" id="input-timeB" placeholder="TIME VERMELHO" class="p-5 rounded-2xl text-black text-xl border-b-8 border-red-500 text-center font-bold uppercase">
             </div>
-            <button onclick="validarEntrada()" class="w-full bg-green-500 mt-10 py-8 rounded-[40px] text-5xl font-game btn-game text-white uppercase">Puxar Perguntas</button>
+            <button onclick="validarEntrada()" class="w-full bg-green-500 mt-8 py-6 rounded-3xl text-4xl font-game btn-side text-white">COMEÇAR</button>
         </div>
     </div>
 
-    <div id="section-quiz" class="hidden h-screen flex flex-col bg-slate-100">
-        <div class="header-banner"></div>
-        
-        <div class="h-32 flex p-4 gap-6 bg-[#064e3b] shadow-2xl">
-            <div id="area-timeA" onclick="selecionarTime('A')" class="flex-1 bg-blue-700 rounded-[35px] flex items-center justify-between px-12 border-8 border-transparent relative text-white cursor-pointer transition-all">
-                <div class="flex flex-col"><span class="text-sm font-black uppercase opacity-60">Time Azul</span><div id="placarA" class="text-6xl font-game">0</div></div>
-                <div id="labelA" class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-green-900 px-6 py-1 rounded-full text-xs font-black hidden uppercase">SUA VEZ</div>
+    <div id="section-quiz" class="hidden h-screen flex flex-col bg-slate-100 overflow-hidden">
+        <div class="header-banner"><span id="txt-escola" class="text-purple-900 font-black text-2xl uppercase italic tracking-widest"></span></div>
+
+        <div class="h-24 flex p-2 gap-3 bg-purple-950">
+            <div id="area-timeA" onclick="selecionarTime('A')" class="flex-1 bg-blue-600 rounded-[20px] flex items-center justify-between px-6 border-4 border-transparent relative text-white cursor-pointer transition-all">
+                <div class="flex flex-col"><h2 id="display-timeA" class="text-xs font-black opacity-80 uppercase">TIME A</h2><div id="placarA" class="text-4xl font-game">0</div></div>
+                <div id="labelA" class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-purple-900 px-3 py-0.5 rounded-full text-[10px] font-black hidden">RESPONDENDO</div>
             </div>
-            <div id="area-timeB" onclick="selecionarTime('B')" class="flex-1 bg-red-700 rounded-[35px] flex items-center justify-between px-12 border-8 border-transparent relative text-white cursor-pointer transition-all">
-                <div class="flex flex-col items-end"><span class="text-sm font-black uppercase opacity-60">Time Vermelho</span><div id="placarB" class="text-6xl font-game">0</div></div>
-                <div id="labelB" class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-yellow-400 text-green-900 px-6 py-1 rounded-full text-xs font-black hidden uppercase">SUA VEZ</div>
+            <div class="flex items-center justify-center text-yellow-400 font-game text-xl">VS</div>
+            <div id="area-timeB" onclick="selecionarTime('B')" class="flex-1 bg-red-600 rounded-[20px] flex items-center justify-between px-6 border-4 border-transparent relative text-white cursor-pointer transition-all">
+                <div class="flex flex-col items-end"><h2 id="display-timeB" class="text-xs font-black opacity-80 uppercase">TIME B</h2><div id="placarB" class="text-4xl font-game">0</div></div>
+                <div id="labelB" class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-purple-900 px-3 py-0.5 rounded-full text-[10px] font-black hidden">RESPONDENDO</div>
             </div>
         </div>
 
-        <div class="flex-1 flex p-6 gap-6 overflow-hidden">
-            <div class="w-56 flex flex-col gap-6">
-                <button onclick="iniciarCronometro()" class="flex-1 bg-yellow-400 text-green-900 rounded-[40px] btn-game text-4xl font-game">TEMPO</button>
-                <button onclick="verificarResposta()" class="flex-1 bg-green-600 text-white rounded-[40px] btn-game text-4xl font-game">CONFIRMAR</button>
+        <div class="flex-1 flex p-3 gap-3 overflow-hidden">
+            <div class="w-40 flex flex-col gap-2 z-10">
+                <button onclick="iniciarCronometro()" class="flex-1 bg-orange-500 text-white rounded-xl btn-side text-xl font-game">TEMPO</button>
+                <button id="btn-verificar" onclick="verificarResposta()" class="flex-1 bg-green-600 text-white rounded-xl btn-side text-xl font-game">RESPOSTA</button>
             </div>
-            <div id="card-pergunta" class="flex-1 bg-white rounded-[60px] p-12 shadow-2xl border-2 border-slate-200 flex flex-col relative animate-fluid">
-                <div id="rodada-info" class="bg-green-700 text-white px-8 py-2 rounded-full font-black text-base uppercase w-fit mb-6"></div>
-                <div id="enunciado" class="text-5xl font-bold text-green-900 leading-[1.1] mb-12 min-h-[140px]"></div>
-                <div id="alternativas" class="grid grid-cols-1 gap-4 flex-1"></div>
+            
+            <div id="box-pergunta" class="flex-1 bg-white rounded-[30px] p-5 shadow-xl border border-slate-200 flex flex-col relative">
+                <div id="rodada-info" class="bg-purple-900 text-white px-4 py-2 rounded-full font-black text-sm uppercase w-fit mb-2"></div>
+                <div id="enunciado" class="text-3xl font-bold text-purple-900 leading-tight mb-4 h-20 flex items-center pl-4 pr-10"></div>
+                <div id="alternativas" class="flex flex-col gap-[12px] flex-1 pl-4"></div>
             </div>
-        </div>
-    </div>
-
-    <div id="timer-overlay" class="hidden">
-        <div class="timer-circle">
-            <span id="timer-num" class="font-game text-[180px] text-green-800">5</span>
-        </div>
-        <h2 class="font-game text-6xl text-yellow-400 mt-10 italic animate-pulse">VALENDO!</h2>
-    </div>
-
-    <div id="modal-douglas" class="hidden modal-container">
-        <div class="modal-content animate-fluid">
-            <h2 id="modal-title" class="text-6xl font-game text-green-800 mb-6">OPPS!</h2>
-            <p id="modal-text" class="text-3xl font-black text-slate-700 mb-10 uppercase"></p>
-            <button onclick="fecharModal()" class="bg-green-600 text-white px-16 py-6 rounded-3xl font-game text-4xl w-full btn-game">CONTINUAR</button>
         </div>
     </div>
 
-    <div id="rule-card" class="hidden fixed top-40 left-10 z-[500] bg-red-600 text-white p-8 rounded-[40px] border-8 border-white shadow-2xl animate-bounce">
-        <div id="rule-title" class="font-game text-4xl">TUDO OU NADA</div>
+    <div id="timer-container" class="hidden status-card">
+        <div class="relative flex items-center justify-center">
+            <svg class="w-40 h-40"><circle cx="80" cy="80" r="70" stroke="#ddd" stroke-width="12" fill="transparent"/><circle id="timer-bar" cx="80" cy="80" r="70" stroke="#facc15" stroke-width="15" fill="transparent" stroke-dasharray="440" stroke-dashoffset="0" class="timer-circle-mega"/></svg>
+            <div id="timer-num" class="absolute font-game text-7xl text-purple-900">5</div>
+        </div>
+        <span class="text-purple-900 font-black mt-4 text-xl uppercase">TEMPO!</span>
     </div>
 
-    <div id="overlay-torta" class="hidden fixed inset-0 bg-black z-[4000] flex flex-col">
-        <video id="video-torta" class="flex-1 w-full h-full object-contain"><source id="source-torta" src="" type="video/mp4"></video>
-        <button onclick="fecharTorta()" class="bg-yellow-400 text-green-900 py-12 font-game text-6xl border-t-[10px] border-white">PRÓXIMA PERGUNTA</button>
+    <div id="special-card" class="hidden status-card special-card">
+        <div class="text-6xl mb-2">🔥</div>
+        <div id="special-title" class="text-red-600 font-game text-3xl uppercase">REGRA</div>
+        <p id="special-desc" class="text-purple-950 font-black text-sm mt-2 uppercase"></p>
     </div>
+
+    <div id="modal-alerta" class="hidden fixed inset-0 bg-black/90 z-[600] flex items-center justify-center p-6"><div class="bg-white text-purple-900 p-8 rounded-[40px] text-center max-w-sm border-8 border-yellow-400 shadow-2xl"><p id="alerta-texto" class="text-2xl font-black mb-6 uppercase italic leading-tight"></p><button id="btn-modal-confirmar" class="bg-purple-600 text-white px-8 py-4 rounded-2xl font-game text-2xl w-full uppercase">OK</button></div></div>
+    <div id="overlay-torta" class="hidden fixed inset-0 bg-black z-[400] flex flex-col"><video id="video-torta" class="flex-1 w-full h-full object-contain"><source id="source-torta" src="" type="video/mp4"></video><button onclick="fecharTorta()" class="bg-yellow-400 text-purple-900 py-10 font-game text-4xl border-t-8 border-white uppercase italic">PRÓXIMA ↩</button></div>
+    <div id="screen-vitoria" class="hidden fixed inset-0 z-[1000] bg-purple-900 flex flex-col items-center justify-center"><h2 class="text-yellow-400 font-game text-7xl">VENCEDOR!</h2><div id="vencedor-nome" class="text-white font-game text-9xl my-8"></div><button onclick="location.reload()" class="bg-white text-purple-900 px-10 py-4 rounded-full font-game text-2xl">RECOMEÇAR</button></div>
 
     <script>
+        // CONFIG FIREBASE (MANTENDO O SEU DB)
         const firebaseConfig = { apiKey: "AIzaSyB5eMOm-AjXVbyUT-cnsyY5YU7M0cqqsMU", authDomain: "quizdouglas.firebaseapp.com", databaseURL: "https://quizdouglas-default-rtdb.firebaseio.com", projectId: "quizdouglas", storageBucket: "quizdouglas.firebasestorage.app", messagingSenderId: "839144790261", appId: "1:839144790261:web:bbc663dfdc4240c33f8dbc" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         let pontosA = 0, pontosB = 0, timeAtivo = null, perguntaAtual = 0, selecionada = null, timerInterval = null, bloqueado = false, perguntas = [];
-        let modalCb = null;
+        const audios = { tick: document.getElementById('snd-tick'), alarm: document.getElementById('snd-alarm'), tension: document.getElementById('snd-tension'), correct: document.getElementById('snd-correct'), wrong: document.getElementById('snd-wrong'), win: document.getElementById('snd-win') };
 
-        function ativarEIniciar() { document.getElementById('section-intro').classList.add('hidden'); document.getElementById('section-cadastro').classList.remove('hidden'); }
-
-        function validarEntrada() {
-            const esc = document.getElementById('input-escola').value;
-            const tA = document.getElementById('input-timeA').value;
-            const tB = document.getElementById('input-timeB').value;
-            if(!esc || !tA || !tB) return showModal("ATENÇÃO", "Preencha todos os campos para começar!");
-
-            db.ref('quiz_atual').once('value').then(snap => {
-                const dados = snap.val();
-                if(!dados) return showModal("ERRO", "Banco de dados vazio!");
-                perguntas = Object.values(dados);
-                document.getElementById('section-cadastro').classList.add('hidden');
-                document.getElementById('section-quiz').classList.remove('hidden');
-                carregarPergunta();
-            });
-        }
-
-        function selecionarTime(t) {
-            if(bloqueado) return;
-            timeAtivo = t;
-            document.querySelectorAll('[id^="area-time"]').forEach(el => el.style.borderColor = 'transparent');
-            document.querySelectorAll('[id^="label"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById('area-time'+t).style.borderColor = '#facc15';
-            document.getElementById('label'+t).classList.remove('hidden');
-        }
+        function playSnd(s) { s.currentTime = 0; s.play().catch(()=>{}); }
+        function ativarEIniciar() { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); document.getElementById('section-intro').classList.add('hidden'); document.getElementById('section-cadastro').classList.remove('hidden'); }
+        function selecionarTime(t) { if(bloqueado) return; timeAtivo = t; document.querySelectorAll('[id^="area-time"]').forEach(el => el.style.borderColor = 'transparent'); document.getElementById('area-time'+t).style.borderColor = '#facc15'; document.querySelectorAll('[id^="label"]').forEach(el => el.classList.add('hidden')); document.getElementById('label'+t).classList.remove('hidden'); }
 
         function carregarPergunta() {
             timeAtivo = null; selecionada = null; bloqueado = false;
-            document.getElementById('timer-overlay').classList.add('hidden');
-            document.getElementById('rule-card').classList.add('hidden');
+            document.getElementById('timer-container').classList.add('hidden');
+            document.getElementById('timer-container').classList.remove('panic-mode');
+            const sc = document.getElementById('special-card'); sc.classList.add('hidden');
+            sc.classList.remove('card-left'); 
             document.querySelectorAll('[id^="area-time"]').forEach(el => el.style.borderColor = 'transparent');
             document.querySelectorAll('[id^="label"]').forEach(el => el.classList.add('hidden'));
-
+            
             const p = perguntas[perguntaAtual];
-            const cp = document.getElementById('card-pergunta');
-            cp.classList.remove('animate-fluid'); void cp.offsetWidth; cp.classList.add('animate-fluid');
-
             document.getElementById('rodada-info').innerText = `RODADA ${perguntaAtual + 1} / ${perguntas.length}`;
-            document.getElementById('enunciado').innerText = p.q;
-
-            if(p.regra) {
-                document.getElementById('rule-card').classList.remove('hidden');
-                document.getElementById('rule-title').innerText = p.regra === 'tudonada' ? "TUDO OU NADA!" : "DOBRA OU DOA!";
+            
+            // LOGICA DE REGRA DO FIREBASE NO SEU VISUAL
+            if(p.regra === 'tudonada') { 
+                sc.classList.remove('hidden'); 
+                document.getElementById('special-title').innerText = "TUDO OU NADA"; 
+                document.getElementById('special-desc').innerText = "ERROU = VOLTA AO ZERO!"; 
+            } else if(p.regra === 'dobra') { 
+                sc.classList.remove('hidden'); 
+                document.getElementById('special-title').innerText = "DOBRAR OU DOAR"; 
+                document.getElementById('special-desc').innerText = "VALE O DOBRO!"; 
             }
 
-            const container = document.getElementById('alternativas'); container.innerHTML = '';
+            document.getElementById('enunciado').innerText = `${perguntaAtual + 1}. ${p.q}`;
+            const container = document.getElementById('alternativas'); container.innerHTML = ''; 
             p.opt.forEach((o, i) => {
-                const btn = document.createElement('button'); btn.className = "alt-btn";
-                btn.innerHTML = `<span class="w-14 h-14 bg-green-700 text-white rounded-full flex items-center justify-center mr-6 font-black text-3xl shadow-lg">${String.fromCharCode(65+i)}</span> <span class="flex-1">${o}</span>`;
-                btn.onclick = () => { if(!timeAtivo) return showModal("AVISO", "Selecione o time que vai responder!"); if(bloqueado) return; document.querySelectorAll('.alt-btn').forEach(b => b.classList.remove('selected-alt')); btn.classList.add('selected-alt'); selecionada = i; clearInterval(timerInterval); document.getElementById('timer-overlay').classList.add('hidden'); };
+                const btn = document.createElement('button');
+                btn.className = "alt-btn";
+                btn.innerHTML = `<span class="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center mr-4 font-black text-xl">${String.fromCharCode(65+i)}</span> <span class="flex-1">${o}</span>`;
+                btn.onclick = () => { if(!timeAtivo) { mostrarAlerta("SELECIONE O TIME PRIMEIRO!"); return; } if(bloqueado) return; document.querySelectorAll('.alt-btn').forEach(b => b.classList.remove('selected-alt')); btn.classList.add('selected-alt'); selecionada = i; pararCronometro(); };
                 container.appendChild(btn);
             });
         }
 
         function iniciarCronometro() {
-            if(!timeAtivo || bloqueado) return;
-            let t = 5; document.getElementById('timer-overlay').classList.remove('hidden');
-            document.getElementById('timer-num').innerText = t;
-            clearInterval(timerInterval);
+            if(!timeAtivo || bloqueado) { if(!timeAtivo) mostrarAlerta("SELECIONE O TIME!"); return; }
+            if(!document.getElementById('special-card').classList.contains('hidden')) document.getElementById('special-card').classList.add('card-left');
+            let tempo = 5; const cont = document.getElementById('timer-container');
+            cont.classList.remove('hidden');
+            document.getElementById('timer-num').innerText = tempo;
+            playSnd(audios.tick);
             timerInterval = setInterval(() => {
-                t--; document.getElementById('timer-num').innerText = t;
-                if(t <= 0) { clearInterval(timerInterval); bloqueado = true; document.getElementById('timer-overlay').classList.add('hidden'); showModal("TEMPO ESGOTADO", "Vocês perderam 10 pontos!", () => { aplicarPontos(-10); exibirTorta(timeAtivo); }); }
+                tempo--; document.getElementById('timer-num').innerText = tempo;
+                if(tempo === 2) { cont.classList.add('panic-mode'); audios.tick.pause(); playSnd(audios.alarm); }
+                if(tempo <= 0) { pararCronometro(); processarTempoEsgotado(); }
             }, 1000);
         }
 
-        function verificarResposta() {
-            if(selecionada === null || !timeAtivo || bloqueado) return;
-            bloqueado = true;
+        function pararCronometro() { clearInterval(timerInterval); audios.tick.pause(); audios.alarm.pause(); document.getElementById('timer-container').classList.add('hidden'); }
+        function verificarResposta() { if(selecionada === null || timeAtivo === null || bloqueado) return; bloqueado = true; pararCronometro(); playSnd(audios.tension); const correta = perguntas[perguntaAtual].c; const acertou = (selecionada === correta); document.querySelectorAll('.alt-btn')[selecionada].classList.add(acertou ? 'correct-visual' : 'wrong-visual'); if(!acertou) document.querySelectorAll('.alt-btn')[correta].classList.add('correct-visual'); setTimeout(() => { audios.tension.pause(); playSnd(acertou ? audios.correct : audios.wrong); processarLogicaPontos(acertou); mostrarAlerta(acertou ? "CERTO! RIVAL LEVA TORTA!" : "ERROU! VOCÊ LEVA TORTA!", () => exibirTorta(acertou ? (timeAtivo==='A'?'B':'A') : timeAtivo)); }, 4000); }
+        function processarTempoEsgotado() { bloqueado = true; playSnd(audios.wrong); mostrarAlerta("TEMPO ESGOTADO!", () => { aplicarPontos(-10); exibirTorta(timeAtivo); }); }
+        
+        function processarLogicaPontos(acertou) { 
             const p = perguntas[perguntaAtual];
-            const acertou = (selecionada === p.c);
-            const btns = document.querySelectorAll('.alt-btn');
-            
-            btns[selecionada].style.background = acertou ? '#22c55e' : '#ef4444';
-            btns[selecionada].style.color = 'white';
-            if(!acertou) { btns[p.c].style.background = '#22c55e'; btns[p.c].style.color = 'white'; }
-
-            setTimeout(() => {
-                if(p.regra === 'tudonada' && !acertou) { if(timeAtivo==='A') pontosA=0; else pontosB=0; }
-                else if(p.regra === 'dobra') { aplicarPontos(acertou ? 20 : -10); }
-                else { aplicarPontos(acertou ? 10 : -10); }
-                showModal(acertou ? "ACERTOU!" : "ERROU!", acertou ? "O time ganhou 10 pontos!" : "Perderam 10 pontos!", () => exibirTorta(acertou ? (timeAtivo==='A'?'B':'A') : timeAtivo));
-            }, 1500);
+            if(p.regra === 'tudonada') { 
+                if(acertou) aplicarPontos(10); 
+                else { if(timeAtivo==='A') pontosA=0; else pontosB=0; atualizarPlacares(); } 
+            } else if(p.regra === 'dobra') { 
+                aplicarPontos(acertou ? 20 : -10);
+            } else { 
+                aplicarPontos(acertou ? 10 : -10); 
+            } 
         }
 
-        function aplicarPontos(v) { if(timeAtivo==='A') pontosA=Math.max(0, pontosA+v); else pontosB=Math.max(0, pontosB+v); document.getElementById('placarA').innerText=pontosA; document.getElementById('placarB').innerText=pontosB; }
-        function showModal(title, text, cb=null) { document.getElementById('modal-title').innerText = title; document.getElementById('modal-text').innerText = text; document.getElementById('modal-douglas').classList.remove('hidden'); modalCb = cb; }
-        function fecharModal() { document.getElementById('modal-douglas').classList.add('hidden'); if(modalCb) modalCb(); modalCb = null; }
-        function exibirTorta(t) { document.getElementById('source-torta').src = t==='A' ? 'tortatimeA.mp4' : 'tortatimeB.mp4'; document.getElementById('overlay-torta').classList.remove('hidden'); document.getElementById('video-torta').load(); document.getElementById('video-torta').play(); }
-        function fecharTorta() { document.getElementById('overlay-torta').classList.add('hidden'); if(perguntaAtual < perguntas.length-1) { perguntaAtual++; carregarPergunta(); } else location.reload(); }
+        function aplicarPontos(val) { if(timeAtivo === 'A') pontosA = Math.max(0, pontosA + val); else pontosB = Math.max(0, pontosB + val); atualizarPlacares(); }
+        function atualizarPlacares() { document.getElementById('placarA').innerText = pontosA; document.getElementById('placarB').innerText = pontosB; }
+        function mostrarAlerta(txt, callback = null) { document.getElementById('alerta-texto').innerText = txt; document.getElementById('modal-alerta').classList.remove('hidden'); document.getElementById('btn-modal-confirmar').onclick = () => { document.getElementById('modal-alerta').classList.add('hidden'); if(callback) callback(); }; }
+        function exibirTorta(time) { document.getElementById('source-torta').src = time === 'A' ? 'tortatimeA.mp4' : 'tortatimeB.mp4'; document.getElementById('overlay-torta').classList.remove('hidden'); document.getElementById('video-torta').load(); document.getElementById('video-torta').play(); }
+        function fecharTorta() { document.getElementById('overlay-torta').classList.add('hidden'); if(perguntaAtual < perguntas.length - 1) { perguntaAtual++; carregarPergunta(); } else { finalizarJogo(); } }
+        function finalizarJogo() { playSnd(audios.win); document.getElementById('vencedor-nome').innerText = pontosA > pontosB ? document.getElementById('input-timeA').value : document.getElementById('input-timeB').value; document.getElementById('screen-vitoria').classList.remove('hidden'); }
+        
+        function validarEntrada() { 
+            const esc = document.getElementById('input-escola').value, tA = document.getElementById('input-timeA').value, tB = document.getElementById('input-timeB').value; 
+            if(!esc || !tA || !tB) return; 
+            db.ref('quiz_atual').once('value').then(snap => {
+                const dados = snap.val();
+                if(!dados) return;
+                perguntas = Object.values(dados);
+                document.getElementById('txt-escola').innerText = esc.toUpperCase(); 
+                document.getElementById('display-timeA').innerText = tA.toUpperCase(); 
+                document.getElementById('display-timeB').innerText = tB.toUpperCase(); 
+                document.getElementById('section-cadastro').classList.add('hidden'); 
+                document.getElementById('section-quiz').classList.remove('hidden'); 
+                carregarPergunta(); 
+            });
+        }
     </script>
 </body>
 </html>
