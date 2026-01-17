@@ -12,11 +12,11 @@
         body { font-family: 'Poppins', sans-serif; background-color: #0047bb; color: white; overflow: hidden; height: 100vh; width: 100vw; }
         .font-game { font-family: 'Luckiest Guy', cursive; }
         
+        /* TESTEIRA INTEGRADA */
+        .header-banner { height: 100px; background-color: #fff; background-image: url('testeira.jpg'); background-size: contain; background-repeat: no-repeat; background-position: center; border-bottom: 6px solid #facc15; width: 100%; }
+
         .btn-side { transition: all 0.1s; border-bottom: 4px solid rgba(0,0,0,0.3); text-transform: uppercase; font-weight: 900; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; }
         .btn-side:active { transform: translateY(2px); border-bottom-width: 0; }
-        
-        /* TESTEIRA NA PÁGINA DE PERGUNTAS */
-        .header-banner { height: 100px; background-color: #fff; background-image: url('testeira.jpg'); background-size: contain; background-repeat: no-repeat; background-position: center; border-bottom: 6px solid #facc15; width: 100%; }
 
         .alt-btn { transition: all 0.2s; border: 3px solid #e2e8f0; text-align: left; height: 70px; color: #1e293b; background-color: white; border-radius: 20px; display: flex; align-items: center; padding: 0 20px; font-size: 1.4rem; font-weight: 800; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; }
         .selected-alt { border-color: #009b3a !important; background-color: #f0fdf4 !important; color: #0047bb !important; transform: scale(1.02); }
@@ -82,11 +82,20 @@
         <span class="text-green-800 font-black text-xs uppercase italic">Tempo!</span>
     </div>
 
-    <div id="modal-alerta" class="hidden fixed inset-0 bg-black/90 z-[600] flex items-center justify-center p-6"><div class="bg-white text-green-800 p-8 rounded-[40px] text-center max-w-sm border-8 border-yellow-400 shadow-2xl"><p id="alerta-texto" class="text-2xl font-black mb-6 uppercase italic"></p><button onclick="fecharAlerta()" class="bg-green-600 text-white px-8 py-4 rounded-2xl font-game text-2xl w-full">OK</button></div></div>
-    <div id="overlay-torta" class="hidden fixed inset-0 bg-black z-[400] flex flex-col"><video id="video-torta" class="flex-1 w-full h-full object-contain"><source id="source-torta" src="" type="video/mp4"></video><button onclick="fecharTorta()" class="bg-yellow-400 text-green-800 py-8 font-game text-3xl border-t-8 border-white">PRÓXIMA PERGUNTA ↩</button></div>
-    <div id="screen-vitoria" class="hidden fixed inset-0 z-[1000] bg-green-800 flex flex-col items-center justify-center text-center p-4"><h2 class="text-yellow-400 font-game text-6xl uppercase">Vencedor!</h2><div id="vencedor-nome" class="text-white font-game text-8xl my-8 uppercase"></div><button onclick="location.reload()" class="bg-white text-green-800 px-10 py-4 rounded-full font-game text-xl uppercase">Recomeçar</button></div>
+    <div id="modal-alerta" class="hidden fixed inset-0 bg-black/90 z-[600] flex items-center justify-center p-6">
+        <div class="bg-white text-green-800 p-8 rounded-[40px] text-center max-w-sm border-8 border-yellow-400">
+            <p id="alerta-texto" class="text-xl font-black mb-6 uppercase italic"></p>
+            <button onclick="fecharAlerta()" class="bg-green-600 text-white px-8 py-4 rounded-2xl font-game text-2xl w-full">OK</button>
+        </div>
+    </div>
+    
+    <div id="overlay-torta" class="hidden fixed inset-0 bg-black z-[400] flex flex-col">
+        <video id="video-torta" class="flex-1 w-full h-full object-contain"><source id="source-torta" src="" type="video/mp4"></video>
+        <button onclick="fecharTorta()" class="bg-yellow-400 text-green-800 py-8 font-game text-3xl border-t-8 border-white">PRÓXIMA PERGUNTA ↩</button>
+    </div>
 
     <script>
+        // CONFIGURAÇÃO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyB5eMOm-AjXVbyUT-cnsyY5YU7M0cqqsMU",
             authDomain: "quizdouglas.firebaseapp.com",
@@ -111,18 +120,28 @@
             const esc = document.getElementById('input-escola').value;
             const tA = document.getElementById('input-timeA').value;
             const tB = document.getElementById('input-timeB').value;
+            
             if(!esc || !tA || !tB) return alert("Preencha todos os campos!");
 
-            db.ref('quiz_atual').once('value').then(snap => {
-                const dados = snap.val();
-                if(!dados) return alert("Banco vazio! Adicione perguntas na Dash.");
-                perguntas = Object.values(dados);
-                document.getElementById('display-timeA').innerText = tA.toUpperCase();
-                document.getElementById('display-timeB').innerText = tB.toUpperCase();
-                document.getElementById('section-cadastro').classList.add('hidden');
-                document.getElementById('section-quiz').classList.remove('hidden');
-                carregarPergunta();
-            }).catch(() => alert("Erro ao conectar com Firebase! Verifique sua internet."));
+            // BUSCA PERGUNTAS COM LOG DE ERRO DETALHADO
+            db.ref('quiz_atual').once('value')
+                .then(snap => {
+                    const dados = snap.val();
+                    if(!dados) {
+                        alert("Conexão OK, mas o Banco de Dados está VAZIO! Cadastre perguntas na Dash.");
+                        return;
+                    }
+                    perguntas = Object.values(dados);
+                    document.getElementById('display-timeA').innerText = tA.toUpperCase();
+                    document.getElementById('display-timeB').innerText = tB.toUpperCase();
+                    document.getElementById('section-cadastro').classList.add('hidden');
+                    document.getElementById('section-quiz').classList.remove('hidden');
+                    carregarPergunta();
+                })
+                .catch(err => {
+                    alert("ERRO TÉCNICO FIREBASE: " + err.message + "\nVerifique se as Regras do Database estão Públicas.");
+                    console.error(err);
+                });
         }
 
         function selecionarTime(t) {
@@ -137,9 +156,6 @@
         function carregarPergunta() {
             timeAtivo = null; selecionada = null; bloqueado = false;
             document.getElementById('timer-container').classList.add('hidden');
-            document.querySelectorAll('[id^="area-time"]').forEach(el => el.style.borderColor = 'transparent');
-            document.querySelectorAll('[id^="label"]').forEach(el => el.classList.add('hidden'));
-            
             const p = perguntas[perguntaAtual];
             document.getElementById('rodada-info').innerText = `RODADA ${perguntaAtual + 1} / ${perguntas.length}`;
             document.getElementById('enunciado').innerText = p.q;
@@ -157,7 +173,6 @@
                     btn.classList.add('selected-alt');
                     selecionada = i;
                     clearInterval(timerInterval);
-                    document.getElementById('timer-container').classList.add('hidden');
                 };
                 container.appendChild(btn);
             });
@@ -175,10 +190,7 @@
                 if(tempo <= 0) {
                     clearInterval(timerInterval);
                     bloqueado = true;
-                    mostrarAlerta("TEMPO ESGOTADO!", () => { 
-                        aplicarPontos(-10); 
-                        exibirTorta(timeAtivo); 
-                    });
+                    mostrarAlerta("TEMPO ESGOTADO!", () => { aplicarPontos(-10); exibirTorta(timeAtivo); });
                 }
             }, 1000);
         }
@@ -188,7 +200,6 @@
             bloqueado = true;
             const correta = perguntas[perguntaAtual].c;
             const acertou = (selecionada === correta);
-            
             const btns = document.querySelectorAll('.alt-btn');
             btns[selecionada].classList.add(acertou ? 'correct-visual' : 'wrong-visual');
             if(!acertou) btns[correta].classList.add('correct-visual');
@@ -231,8 +242,8 @@
                 perguntaAtual++;
                 carregarPergunta();
             } else {
-                document.getElementById('vencedor-nome').innerText = pontosA > pontosB ? document.getElementById('input-timeA').value : document.getElementById('input-timeB').value;
-                document.getElementById('screen-vitoria').classList.remove('hidden');
+                alert("FIM DE JOGO!");
+                location.reload();
             }
         }
     </script>
