@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dash Master - Douglas Souza</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .input-field { background: #1e293b; border: 2px solid #334155; color: white; padding: 12px; border-radius: 12px; width: 100%; outline: none; transition: all 0.2s; }
+        .input-field:focus { border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
+        .card-pergunta { background: #1e293b; border-left: 6px solid #6366f1; transition: transform 0.2s; }
+        .card-pergunta:hover { transform: translateY(-2px); }
+        .badge-especial { background: #ef4444; color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="flex justify-between items-center mb-10 border-b border-slate-700 pb-6">
+            <div>
+                <h1 class="text-3xl font-800 text-white uppercase tracking-tighter">Dash<span class="text-indigo-500">Master</span></h1>
+                <p class="text-slate-400 text-sm">Controle de Perguntas & Regras - Douglas Souza</p>
+            </div>
+            <div class="text-right">
+                <span id="status-cloud" class="text-xs bg-green-500/20 text-green-400 px-3 py-1 rounded-full border border-green-500/30">● Conectado ao Firebase</span>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-1">
+                <div class="bg-slate-800 p-6 rounded-3xl shadow-xl sticky top-8">
+                    <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
+                        <span class="bg-indigo-500 w-2 h-6 rounded-full"></span> Nova Pergunta
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase ml-2">Enunciado</label>
+                            <textarea id="f-enunciado" class="input-field h-24 resize-none" placeholder="Ex: Qual o maior oceano?"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-2">
+                            <label class="text-xs font-bold text-slate-500 uppercase ml-2">Alternativas</label>
+                            <input type="text" id="f-opt-0" class="input-field" placeholder="Alternativa A">
+                            <input type="text" id="f-opt-1" class="input-field" placeholder="Alternativa B">
+                            <input type="text" id="f-opt-2" class="input-field" placeholder="Alternativa C">
+                            <input type="text" id="f-opt-3" class="input-field" placeholder="Alternativa D">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 uppercase ml-2">Correta</label>
+                                <select id="f-correta" class="input-field">
+                                    <option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 uppercase ml-2">Pontos</label>
+                                <input type="number" id="f-pontos" class="input-field" value="10">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase ml-2">Regra Especial</label>
+                            <select id="f-regra" class="input-field border-indigo-500/50">
+                                <option value="normal">Nenhuma (Normal)</option>
+                                <option value="dobra">Dobrar Pontos (Acerto)</option>
+                                <option value="tudonada">Tudo ou Nada (Erro zera placar)</option>
+                            </select>
+                        </div>
+
+                        <button onclick="adicionarPergunta()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-indigo-500/20 mt-4">
+                            ADICIONAR À LISTA
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Perguntas no Jogo (<span id="count">0</span>)</h2>
+                    <button onclick="limparTudo()" class="text-xs text-red-400 hover:underline">Limpar Banco de Dados</button>
+                </div>
+                <div id="lista-vazia" class="text-center py-20 bg-slate-800/50 rounded-3xl border-2 border-dashed border-slate-700">
+                    <p class="text-slate-500 text-sm">Nenhuma pergunta cadastrada ainda.</p>
+                </div>
+                <div id="container-lista" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5eMOm-AjXVbyUT-cnsyY5YU7M0cqqsMU",
+            authDomain: "quizdouglas.firebaseapp.com",
+            databaseURL: "https://quizdouglas-default-rtdb.firebaseio.com",
+            projectId: "quizdouglas",
+            storageBucket: "quizdouglas.firebasestorage.app",
+            messagingSenderId: "839144790261",
+            appId: "1:839144790261:web:bbc663dfdc4240c33f8dbc"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Carregar do Firebase ao abrir
+        db.ref('quiz_atual').on('value', snapshot => {
+            const dados = snapshot.val() || [];
+            renderizarLista(dados);
+        });
+
+        function adicionarPergunta() {
+            const enunciado = document.getElementById('f-enunciado').value;
+            if(!enunciado) return alert("Digite a pergunta!");
+
+            const nova = {
+                q: enunciado,
+                opt: [
+                    document.getElementById('f-opt-0').value || "A",
+                    document.getElementById('f-opt-1').value || "B",
+                    document.getElementById('f-opt-2').value || "C",
+                    document.getElementById('f-opt-3').value || "D"
+                ],
+                c: parseInt(document.getElementById('f-correta').value),
+                pts: parseInt(document.getElementById('f-pontos').value),
+                regra: document.getElementById('f-regra').value
+            };
+
+            db.ref('quiz_atual').once('value').then(snapshot => {
+                let lista = snapshot.val() || [];
+                lista.push(nova);
+                db.ref('quiz_atual').set(lista);
+                limparCampos();
+            });
+        }
+
+        function renderizarLista(lista) {
+            const container = document.getElementById('container-lista');
+            const vazia = document.getElementById('lista-vazia');
+            const count = document.getElementById('count');
+            
+            count.innerText = lista.length;
+            container.innerHTML = '';
+            
+            if(lista.length > 0) vazia.classList.add('hidden');
+            else vazia.classList.remove('hidden');
+
+            lista.forEach((p, index) => {
+                const div = document.createElement('div');
+                div.className = "card-pergunta p-5 rounded-2xl flex justify-between items-center";
+                div.innerHTML = `
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-1">
+                            <span class="text-indigo-400 font-bold text-sm">#${index + 1}</span>
+                            ${p.regra !== 'normal' ? `<span class="badge-especial">${p.regra.toUpperCase()}</span>` : ''}
+                            <span class="text-slate-500 text-xs">${p.pts} Pontos</span>
+                        </div>
+                        <h3 class="text-white font-medium pr-4">${p.q}</h3>
+                    </div>
+                    <button onclick="remover(${index})" class="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2 rounded-lg transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function remover(index) {
+            db.ref('quiz_atual').once('value').then(snapshot => {
+                let lista = snapshot.val();
+                lista.splice(index, 1);
+                db.ref('quiz_atual').set(lista);
+            });
+        }
+
+        function limparTudo() {
+            if(confirm("Deseja apagar TODAS as perguntas do jogo?")) {
+                db.ref('quiz_atual').set([]);
+            }
+        }
+
+        function limparCampos() {
+            document.getElementById('f-enunciado').value = '';
+            document.getElementById('f-opt-0').value = '';
+            document.getElementById('f-opt-1').value = '';
+            document.getElementById('f-opt-2').value = '';
+            document.getElementById('f-opt-3').value = '';
+            document.getElementById('f-regra').value = 'normal';
+        }
+    </script>
+</body>
+</html>
