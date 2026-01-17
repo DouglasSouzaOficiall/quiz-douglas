@@ -11,20 +11,33 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #1a0633; color: white; overflow: hidden; height: 100vh; width: 100vw; }
         .font-game { font-family: 'Luckiest Guy', cursive; }
+        
         .btn-side { transition: all 0.1s; border-bottom: 4px solid rgba(0,0,0,0.3); text-transform: uppercase; font-weight: 900; display: flex; align-items: center; justify-content: center; text-align: center; cursor: pointer; }
         .btn-side:active { transform: translateY(2px); border-bottom-width: 0; }
-        .header-banner { height: 100px; background-color: #f8fafc; background-image: url('testeira.jpg'); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-bottom: 4px solid #facc15; display: flex; align-items: center; justify-content: center; width: 100%; }
+        
+        .header-banner { height: 100px; background-color: #f8fafc; background-image: url('banner_cliente.jpg'); background-size: contain; background-position: center; background-repeat: no-repeat; border-bottom: 4px solid #facc15; display: flex; align-items: center; justify-content: center; width: 100%; }
+
         .alt-btn { transition: all 0.2s; border: 3px solid #e2e8f0; text-align: left; height: 75px; color: #1e293b; background-color: white; border-radius: 25px; display: flex; align-items: center; padding: 0 25px; font-size: 1.6rem; font-weight: 800; width: 100%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; cursor: pointer; }
         .selected-alt { border-color: #a855f7 !important; background-color: #f3e8ff !important; color: #6b21a8 !important; transform: scale(1.02); }
+        
         .correct-visual { background-color: #22c55e !important; color: white !important; border-color: #15803d !important; animation: pulse 0.5s infinite; }
         .wrong-visual { background-color: #ef4444 !important; color: white !important; border-color: #991b1b !important; animation: shake 0.4s; }
+
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
         @keyframes pulse { 0% { transform: scale(1.02); } 50% { transform: scale(1.05); } 100% { transform: scale(1.02); } }
-        .status-card { position: fixed; top: 120px; right: 30px; z-index: 50; background: white; padding: 30px; border-radius: 45px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 8px solid #facc15; display: flex; flex-direction: column; align-items: center; width: 220px; transition: all 0.5s ease; }
+
+        .status-card { 
+            position: fixed; top: 120px; right: 30px; z-index: 50; background: white; 
+            padding: 30px; border-radius: 45px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+            border: 8px solid #facc15; display: flex; flex-direction: column; align-items: center; width: 220px;
+            transition: all 0.5s ease;
+        }
         .special-card { border-color: #ef4444; background: #fff1f2; top: 120px; width: 220px; text-align: center; }
         .card-left { left: 30px !important; right: auto !important; }
+
         .panic-mode { animation: panic 0.15s infinite; border-color: #ff0000 !important; box-shadow: 0 0 50px #ff0000; }
         @keyframes panic { from { transform: translate(2px, 2px); } to { transform: translate(-2px, -2px); } }
+
         .timer-circle-mega { transition: stroke-dashoffset 1s linear; transform: rotate(-90deg); transform-origin: 50% 50%; }
         .hidden { display: none !important; }
     </style>
@@ -99,18 +112,19 @@
     </div>
 
     <div id="modal-alerta" class="hidden fixed inset-0 bg-black/90 z-[600] flex items-center justify-center p-6"><div class="bg-white text-purple-900 p-8 rounded-[40px] text-center max-w-sm border-8 border-yellow-400 shadow-2xl"><p id="alerta-texto" class="text-2xl font-black mb-6 uppercase italic leading-tight"></p><button id="btn-modal-confirmar" class="bg-purple-600 text-white px-8 py-4 rounded-2xl font-game text-2xl w-full uppercase">OK</button></div></div>
+    
     <div id="overlay-torta" class="hidden fixed inset-0 bg-black z-[400] flex flex-col"><video id="video-torta" class="flex-1 w-full h-full object-contain"><source id="source-torta" src="" type="video/mp4"></video><button onclick="fecharTorta()" class="bg-yellow-400 text-purple-900 py-10 font-game text-4xl border-t-8 border-white uppercase italic">PRÓXIMA ↩</button></div>
+    
     <div id="screen-vitoria" class="hidden fixed inset-0 z-[1000] bg-purple-900 flex flex-col items-center justify-center"><h2 class="text-yellow-400 font-game text-7xl">VENCEDOR!</h2><div id="vencedor-nome" class="text-white font-game text-9xl my-8"></div><button onclick="location.reload()" class="bg-white text-purple-900 px-10 py-4 rounded-full font-game text-2xl">RECOMEÇAR</button></div>
 
     <script>
-        // CONFIG FIREBASE (MANTENDO O SEU DB)
         const firebaseConfig = { apiKey: "AIzaSyB5eMOm-AjXVbyUT-cnsyY5YU7M0cqqsMU", authDomain: "quizdouglas.firebaseapp.com", databaseURL: "https://quizdouglas-default-rtdb.firebaseio.com", projectId: "quizdouglas", storageBucket: "quizdouglas.firebasestorage.app", messagingSenderId: "839144790261", appId: "1:839144790261:web:bbc663dfdc4240c33f8dbc" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         let pontosA = 0, pontosB = 0, timeAtivo = null, perguntaAtual = 0, selecionada = null, timerInterval = null, bloqueado = false, perguntas = [];
         const audios = { tick: document.getElementById('snd-tick'), alarm: document.getElementById('snd-alarm'), tension: document.getElementById('snd-tension'), correct: document.getElementById('snd-correct'), wrong: document.getElementById('snd-wrong'), win: document.getElementById('snd-win') };
-
+        
         function playSnd(s) { s.currentTime = 0; s.play().catch(()=>{}); }
         function ativarEIniciar() { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); document.getElementById('section-intro').classList.add('hidden'); document.getElementById('section-cadastro').classList.remove('hidden'); }
         function selecionarTime(t) { if(bloqueado) return; timeAtivo = t; document.querySelectorAll('[id^="area-time"]').forEach(el => el.style.borderColor = 'transparent'); document.getElementById('area-time'+t).style.borderColor = '#facc15'; document.querySelectorAll('[id^="label"]').forEach(el => el.classList.add('hidden')); document.getElementById('label'+t).classList.remove('hidden'); }
@@ -123,26 +137,16 @@
             sc.classList.remove('card-left'); 
             document.querySelectorAll('[id^="area-time"]').forEach(el => el.style.borderColor = 'transparent');
             document.querySelectorAll('[id^="label"]').forEach(el => el.classList.add('hidden'));
-            
             const p = perguntas[perguntaAtual];
             document.getElementById('rodada-info').innerText = `RODADA ${perguntaAtual + 1} / ${perguntas.length}`;
             
-            // LOGICA DE REGRA DO FIREBASE NO SEU VISUAL
-            if(p.regra === 'tudonada') { 
-                sc.classList.remove('hidden'); 
-                document.getElementById('special-title').innerText = "TUDO OU NADA"; 
-                document.getElementById('special-desc').innerText = "ERROU = VOLTA AO ZERO!"; 
-            } else if(p.regra === 'dobra') { 
-                sc.classList.remove('hidden'); 
-                document.getElementById('special-title').innerText = "DOBRAR OU DOAR"; 
-                document.getElementById('special-desc').innerText = "VALE O DOBRO!"; 
-            }
-
+            if(p.regra === 'tudonada') { sc.classList.remove('hidden'); document.getElementById('special-title').innerText = "TUDO OU NADA"; document.getElementById('special-desc').innerText = "ERROU = VOLTA AO ZERO!"; }
+            else if(p.regra === 'dobra') { sc.classList.remove('hidden'); document.getElementById('special-title').innerText = "DOBRAR OU DOAR"; document.getElementById('special-desc').innerText = "VALE TUDO!"; }
+            
             document.getElementById('enunciado').innerText = `${perguntaAtual + 1}. ${p.q}`;
             const container = document.getElementById('alternativas'); container.innerHTML = ''; 
             p.opt.forEach((o, i) => {
-                const btn = document.createElement('button');
-                btn.className = "alt-btn";
+                const btn = document.createElement('button'); btn.className = "alt-btn";
                 btn.innerHTML = `<span class="w-12 h-12 bg-purple-600 text-white rounded-full flex items-center justify-center mr-4 font-black text-xl">${String.fromCharCode(65+i)}</span> <span class="flex-1">${o}</span>`;
                 btn.onclick = () => { if(!timeAtivo) { mostrarAlerta("SELECIONE O TIME PRIMEIRO!"); return; } if(bloqueado) return; document.querySelectorAll('.alt-btn').forEach(b => b.classList.remove('selected-alt')); btn.classList.add('selected-alt'); selecionada = i; pararCronometro(); };
                 container.appendChild(btn);
@@ -150,7 +154,7 @@
         }
 
         function iniciarCronometro() {
-            if(!timeAtivo || bloqueado) { if(!timeAtivo) mostrarAlerta("SELECIONE O TIME!"); return; }
+            if(!timeAtivo || bloqueado) return;
             if(!document.getElementById('special-card').classList.contains('hidden')) document.getElementById('special-card').classList.add('card-left');
             let tempo = 5; const cont = document.getElementById('timer-container');
             cont.classList.remove('hidden');
@@ -164,41 +168,50 @@
         }
 
         function pararCronometro() { clearInterval(timerInterval); audios.tick.pause(); audios.alarm.pause(); document.getElementById('timer-container').classList.add('hidden'); }
-        function verificarResposta() { if(selecionada === null || timeAtivo === null || bloqueado) return; bloqueado = true; pararCronometro(); playSnd(audios.tension); const correta = perguntas[perguntaAtual].c; const acertou = (selecionada === correta); document.querySelectorAll('.alt-btn')[selecionada].classList.add(acertou ? 'correct-visual' : 'wrong-visual'); if(!acertou) document.querySelectorAll('.alt-btn')[correta].classList.add('correct-visual'); setTimeout(() => { audios.tension.pause(); playSnd(acertou ? audios.correct : audios.wrong); processarLogicaPontos(acertou); mostrarAlerta(acertou ? "CERTO! RIVAL LEVA TORTA!" : "ERROU! VOCÊ LEVA TORTA!", () => exibirTorta(acertou ? (timeAtivo==='A'?'B':'A') : timeAtivo)); }, 4000); }
-        function processarTempoEsgotado() { bloqueado = true; playSnd(audios.wrong); mostrarAlerta("TEMPO ESGOTADO!", () => { aplicarPontos(-10); exibirTorta(timeAtivo); }); }
         
-        function processarLogicaPontos(acertou) { 
-            const p = perguntas[perguntaAtual];
-            if(p.regra === 'tudonada') { 
-                if(acertou) aplicarPontos(10); 
-                else { if(timeAtivo==='A') pontosA=0; else pontosB=0; atualizarPlacares(); } 
-            } else if(p.regra === 'dobra') { 
-                aplicarPontos(acertou ? 20 : -10);
-            } else { 
-                aplicarPontos(acertou ? 10 : -10); 
-            } 
+        function verificarResposta() {
+            if(selecionada === null || timeAtivo === null || bloqueado) return;
+            bloqueado = true; pararCronometro(); playSnd(audios.tension);
+            const correta = perguntas[perguntaAtual].c;
+            const acertou = (selecionada === correta);
+            document.querySelectorAll('.alt-btn')[selecionada].classList.add(acertou ? 'correct-visual' : 'wrong-visual');
+            if(!acertou) document.querySelectorAll('.alt-btn')[correta].classList.add('correct-visual');
+            setTimeout(() => {
+                audios.tension.pause(); playSnd(acertou ? audios.correct : audios.wrong);
+                processarLogicaPontos(acertou);
+                mostrarAlerta(acertou ? "CERTO! RIVAL LEVA TORTA!" : "ERROU! VOCÊ LEVA TORTA!", () => exibirTorta(acertou ? (timeAtivo==='A'?'B':'A') : timeAtivo));
+            }, 4000);
         }
 
-        function aplicarPontos(val) { if(timeAtivo === 'A') pontosA = Math.max(0, pontosA + val); else pontosB = Math.max(0, pontosB + val); atualizarPlacares(); }
+        function processarLogicaPontos(acertou) { 
+            const p = perguntas[perguntaAtual];
+            if(p.regra === 'tudonada' && !acertou) { if(timeAtivo==='A') pontosA=0; else pontosB=0; }
+            else if(p.regra === 'dobra') { aplicarPontos(acertou ? 20 : -10); }
+            else { aplicarPontos(acertou ? 10 : -10); }
+            atualizarPlacares();
+        }
+
+        function processarTempoEsgotado() { bloqueado = true; playSnd(audios.wrong); mostrarAlerta("TEMPO ESGOTADO!", () => { aplicarPontos(-10); exibirTorta(timeAtivo); }); }
+        function aplicarPontos(val) { if(timeAtivo === 'A') pontosA = Math.max(0, pontosA + val); else pontosB = Math.max(0, pontosB + val); }
         function atualizarPlacares() { document.getElementById('placarA').innerText = pontosA; document.getElementById('placarB').innerText = pontosB; }
-        function mostrarAlerta(txt, callback = null) { document.getElementById('alerta-texto').innerText = txt; document.getElementById('modal-alerta').classList.remove('hidden'); document.getElementById('btn-modal-confirmar').onclick = () => { document.getElementById('modal-alerta').classList.add('hidden'); if(callback) callback(); }; }
+        function mostrarAlerta(txt, cb=null) { document.getElementById('alerta-texto').innerText = txt; document.getElementById('modal-alerta').classList.remove('hidden'); document.getElementById('btn-modal-confirmar').onclick = () => { document.getElementById('modal-alerta').classList.add('hidden'); if(cb) cb(); }; }
         function exibirTorta(time) { document.getElementById('source-torta').src = time === 'A' ? 'tortatimeA.mp4' : 'tortatimeB.mp4'; document.getElementById('overlay-torta').classList.remove('hidden'); document.getElementById('video-torta').load(); document.getElementById('video-torta').play(); }
         function fecharTorta() { document.getElementById('overlay-torta').classList.add('hidden'); if(perguntaAtual < perguntas.length - 1) { perguntaAtual++; carregarPergunta(); } else { finalizarJogo(); } }
         function finalizarJogo() { playSnd(audios.win); document.getElementById('vencedor-nome').innerText = pontosA > pontosB ? document.getElementById('input-timeA').value : document.getElementById('input-timeB').value; document.getElementById('screen-vitoria').classList.remove('hidden'); }
         
-        function validarEntrada() { 
-            const esc = document.getElementById('input-escola').value, tA = document.getElementById('input-timeA').value, tB = document.getElementById('input-timeB').value; 
-            if(!esc || !tA || !tB) return; 
+        function validarEntrada() {
+            const esc = document.getElementById('input-escola').value, tA = document.getElementById('input-timeA').value, tB = document.getElementById('input-timeB').value;
+            if(!esc || !tA || !tB) return;
             db.ref('quiz_atual').once('value').then(snap => {
                 const dados = snap.val();
                 if(!dados) return;
                 perguntas = Object.values(dados);
-                document.getElementById('txt-escola').innerText = esc.toUpperCase(); 
-                document.getElementById('display-timeA').innerText = tA.toUpperCase(); 
-                document.getElementById('display-timeB').innerText = tB.toUpperCase(); 
-                document.getElementById('section-cadastro').classList.add('hidden'); 
-                document.getElementById('section-quiz').classList.remove('hidden'); 
-                carregarPergunta(); 
+                document.getElementById('txt-escola').innerText = esc.toUpperCase();
+                document.getElementById('display-timeA').innerText = tA.toUpperCase();
+                document.getElementById('display-timeB').innerText = tB.toUpperCase();
+                document.getElementById('section-cadastro').classList.add('hidden');
+                document.getElementById('section-quiz').classList.remove('hidden');
+                carregarPergunta();
             });
         }
     </script>
