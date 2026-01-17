@@ -69,20 +69,20 @@
                 <input type="text" id="in-timeA" placeholder="TIME AZUL" class="p-8 rounded-3xl text-black font-bold uppercase text-2xl">
                 <input type="text" id="in-timeB" placeholder="TIME VERMELHO" class="p-8 rounded-3xl text-black font-bold uppercase text-2xl">
             </div>
-            <button onclick="carregarEIniciar()" class="w-full bg-green-500 py-12 rounded-[40px] text-5xl font-game shadow-[0_15px_0_#15803d] text-white uppercase">PUXAR PERGUNTAS</button>
+            <button onclick="carregarEIniciar()" class="w-full bg-green-500 py-12 rounded-[40px] text-5xl font-game shadow-[0_15px_0_#15803d] text-white uppercase">INICIAR JOGO</button>
         </div>
     </div>
 
     <div id="game-ui" class="hidden h-screen flex flex-col">
-        <div class="h-32 bg-white border-b-[15px] border-yellow-400 flex items-center justify-center">
-             <h1 id="txt-escola" class="text-purple-900 font-black text-6xl uppercase"></h1>
+        <div class="h-32 bg-white border-b-[15px] border-yellow-400 flex items-center justify-center shadow-2xl">
+             <h1 id="txt-escola" class="text-purple-900 font-black text-6xl uppercase tracking-tighter"></h1>
         </div>
 
         <div class="h-44 flex p-6 gap-8 bg-purple-950">
-            <div id="areaA" onclick="selecionar('A')" class="flex-1 bg-blue-600 rounded-[50px] flex items-center justify-between px-16 border-[12px] border-transparent cursor-pointer">
+            <div id="areaA" onclick="selecionar('A')" class="flex-1 bg-blue-600 rounded-[50px] flex items-center justify-between px-16 border-[12px] border-transparent cursor-pointer shadow-lg">
                 <div class="flex flex-col"><span id="nameA" class="text-2xl font-black uppercase text-blue-200"></span><div id="ptsA" class="text-9xl font-game text-white">0</div></div>
             </div>
-            <div id="areaB" onclick="selecionar('B')" class="flex-1 bg-red-600 rounded-[50px] flex items-center justify-between px-16 border-[12px] border-transparent cursor-pointer">
+            <div id="areaB" onclick="selecionar('B')" class="flex-1 bg-red-600 rounded-[50px] flex items-center justify-between px-16 border-[12px] border-transparent cursor-pointer shadow-lg">
                 <div class="flex flex-col items-end"><span id="nameB" class="text-2xl font-black uppercase text-red-200"></span><div id="ptsB" class="text-9xl font-game text-white">0</div></div>
             </div>
         </div>
@@ -92,7 +92,8 @@
                 <button onclick="startTimer()" class="flex-1 bg-orange-500 text-white btn-side text-5xl font-game">TEMPO</button>
                 <button onclick="verificar()" class="flex-1 bg-green-600 text-white btn-side text-5xl font-game">OK!</button>
             </div>
-            <div class="flex-1 bg-white rounded-[100px] p-20 flex flex-col border-[15px] border-purple-200">
+            
+            <div class="flex-1 bg-white rounded-[100px] p-20 shadow-2xl flex flex-col border-[15px] border-purple-200">
                 <div id="info" class="bg-purple-900 text-white px-12 py-4 rounded-full text-3xl font-black w-fit mb-12"></div>
                 <div id="enunciado" class="text-7xl font-bold text-purple-900 mb-16 leading-tight"></div>
                 <div id="alternativas" class="grid grid-cols-1 gap-6"></div>
@@ -102,7 +103,7 @@
 
     <div id="spec-ui" class="hidden status-card">
         <div class="text-[100px] mb-6">🔥</div>
-        <div id="spec-title" class="text-red-600 font-game text-5xl uppercase">ESPECIAL</div>
+        <div id="spec-title" class="text-red-600 font-game text-5xl uppercase italic">ESPECIAL</div>
         <p id="spec-desc" class="text-purple-950 font-black text-2xl mt-6 uppercase"></p>
     </div>
 
@@ -124,7 +125,7 @@
         function carregarEIniciar() {
             db.ref('quiz_atual').once('value').then(snap => {
                 const dados = snap.val();
-                if(!dados) return alert("Adicione perguntas na Dash!");
+                if(!dados) return alert("Erro: Cadastre as perguntas no seu Dash!");
                 perguntas = Object.values(dados);
                 document.getElementById('setup').classList.add('hidden');
                 document.getElementById('game-ui').classList.remove('hidden');
@@ -142,7 +143,7 @@
             s.classList.add('hidden');
             if(p.regra !== 'normal') {
                 s.classList.remove('hidden');
-                document.getElementById('spec-desc').innerText = p.regra === 'dobra' ? "DOBRA PONTOS!" : "TUDO OU NADA!";
+                document.getElementById('spec-desc').innerText = p.regra === 'dobra' ? "ACERTO VALE O DOBRO!" : "ERRO ZERA O PLACAR!";
             }
             document.getElementById('info').innerText = `PERGUNTA ${atual+1} / ${perguntas.length}`;
             document.getElementById('enunciado').innerText = p.q;
