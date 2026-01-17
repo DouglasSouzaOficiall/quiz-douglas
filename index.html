@@ -13,59 +13,101 @@
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #1a0633; color: white; overflow: hidden; height: 100vh; }
         .font-game { font-family: 'Luckiest Guy', cursive; }
-        .btn-side { transition: all 0.1s; border-bottom: 6px solid rgba(0,0,0,0.3); text-transform: uppercase; font-weight: 900; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .btn-side:active { transform: translateY(3px); border-bottom-width: 0; }
-        .alt-btn { transition: all 0.2s; border: 4px solid #e2e8f0; text-align: left; height: 85px; color: #1e293b; background-color: white; border-radius: 30px; display: flex; align-items: center; padding: 0 30px; font-size: 1.8rem; font-weight: 800; width: 100%; box-shadow: 0 6px 15px rgba(0,0,0,0.1); cursor: pointer; margin-bottom: 12px; }
+        
+        /* Botões Laterais de Impacto */
+        .btn-side { 
+            transition: all 0.1s; 
+            border-bottom: 8px solid rgba(0,0,0,0.3); 
+            text-transform: uppercase; 
+            font-weight: 900; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            cursor: pointer;
+            border-radius: 30px;
+        }
+        .btn-side:active { transform: translateY(4px); border-bottom-width: 4px; }
+        
+        /* Alternativas Grandes */
+        .alt-btn { 
+            transition: all 0.2s; 
+            border: 5px solid #e2e8f0; 
+            text-align: left; 
+            min-height: 90px; 
+            color: #1e293b; 
+            background-color: white; 
+            border-radius: 35px; 
+            display: flex; 
+            align-items: center; 
+            padding: 0 35px; 
+            font-size: 2.2rem; 
+            font-weight: 800; 
+            width: 100%; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); 
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
         .selected-alt { border-color: #a855f7 !important; background-color: #f3e8ff !important; color: #6b21a8 !important; transform: scale(1.02); }
         .correct { background-color: #22c55e !important; color: white !important; border-color: #15803d !important; }
         .wrong { background-color: #ef4444 !important; color: white !important; border-color: #991b1b !important; }
-        .status-card { position: fixed; top: 130px; right: 40px; background: white; padding: 35px; border-radius: 50px; border: 10px solid #facc15; color: #1a0633; width: 250px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        
+        /* Card de Regras Especiais */
+        .status-card { 
+            position: fixed; top: 140px; right: 50px; 
+            background: white; padding: 40px; 
+            border-radius: 60px; border: 12px solid #facc15; 
+            color: #1a0633; width: 280px; text-align: center; 
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6); 
+            z-index: 100;
+        }
     </style>
 </head>
 <body class="flex flex-col">
 
     <div id="setup" class="fixed inset-0 z-[200] bg-purple-900 flex flex-col items-center justify-center p-6">
-        <h1 class="font-game text-6xl text-yellow-400 mb-10 drop-shadow-lg">QUIZ MASTER</h1>
-        <div class="space-y-4 w-full max-w-md">
-            <input type="text" id="in-escola" placeholder="NOME DO EVENTO" class="w-full p-5 rounded-2xl text-black font-bold uppercase text-xl">
-            <input type="text" id="in-timeA" placeholder="TIME AZUL" class="w-full p-5 rounded-2xl text-black font-bold uppercase text-xl">
-            <input type="text" id="in-timeB" placeholder="TIME VERMELHO" class="w-full p-5 rounded-2xl text-black font-bold uppercase text-xl">
-            <button onclick="carregarEIniciar()" class="w-full bg-green-500 py-8 rounded-3xl text-3xl font-game shadow-2xl hover:bg-green-400 transition-colors">PUXAR PERGUNTAS</button>
+        <h1 class="font-game text-8xl text-yellow-400 mb-12 drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">QUIZ MASTER</h1>
+        <div class="space-y-6 w-full max-w-xl bg-purple-800 p-12 rounded-[50px] shadow-2xl">
+            <input type="text" id="in-escola" placeholder="NOME DO EVENTO" class="w-full p-6 rounded-2xl text-black font-bold uppercase text-2xl border-4 border-yellow-400">
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="in-timeA" placeholder="TIME AZUL" class="p-6 rounded-2xl text-black font-bold uppercase text-xl border-4 border-blue-500">
+                <input type="text" id="in-timeB" placeholder="TIME VERMELHO" class="p-6 rounded-2xl text-black font-bold uppercase text-xl border-4 border-red-500">
+            </div>
+            <button onclick="carregarEIniciar()" class="w-full bg-green-500 py-10 rounded-3xl text-4xl font-game shadow-[0_15px_0_#15803d] hover:bg-green-400 active:translate-y-2 active:shadow-none transition-all text-white uppercase">INICIAR AGORA</button>
         </div>
     </div>
 
     <div id="game-ui" class="hidden h-screen flex flex-col">
-        <div class="h-24 bg-white border-b-8 border-yellow-400 flex items-center justify-center shadow-lg">
-             <h1 id="txt-escola" class="text-purple-900 font-black text-4xl uppercase tracking-tighter"></h1>
+        <div class="h-28 bg-white border-b-[12px] border-yellow-400 flex items-center justify-center shadow-2xl">
+             <h1 id="txt-escola" class="text-purple-900 font-black text-5xl uppercase tracking-tighter"></h1>
         </div>
 
-        <div class="h-32 flex p-4 gap-4 bg-purple-950">
-            <div id="areaA" onclick="selecionar('A')" class="flex-1 bg-blue-600 rounded-[30px] flex items-center justify-between px-10 border-8 border-transparent cursor-pointer transition-all">
-                <div class="flex flex-col"><span id="nameA" class="text-sm font-black uppercase opacity-80"></span><div id="ptsA" class="text-6xl font-game">0</div></div>
+        <div class="h-40 flex p-4 gap-6 bg-purple-950">
+            <div id="areaA" onclick="selecionar('A')" class="flex-1 bg-blue-600 rounded-[40px] flex items-center justify-between px-12 border-[10px] border-transparent cursor-pointer transition-all shadow-lg">
+                <div class="flex flex-col"><span id="nameA" class="text-xl font-black uppercase text-blue-200"></span><div id="ptsA" class="text-8xl font-game text-white">0</div></div>
             </div>
-            <div id="areaB" onclick="selecionar('B')" class="flex-1 bg-red-600 rounded-[30px] flex items-center justify-between px-10 border-8 border-transparent cursor-pointer transition-all">
-                <div class="flex flex-col items-end"><span id="nameB" class="text-sm font-black uppercase opacity-80"></span><div id="ptsB" class="text-6xl font-game">0</div></div>
+            <div id="areaB" onclick="selecionar('B')" class="flex-1 bg-red-600 rounded-[40px] flex items-center justify-between px-12 border-[10px] border-transparent cursor-pointer transition-all shadow-lg">
+                <div class="flex flex-col items-end"><span id="nameB" class="text-xl font-black uppercase text-red-200"></span><div id="ptsB" class="text-8xl font-game text-white">0</div></div>
             </div>
         </div>
 
-        <div class="flex-1 flex p-6 gap-6">
-            <div class="w-56 flex flex-col gap-4">
-                <button onclick="startTimer()" class="flex-1 bg-orange-500 text-white rounded-3xl btn-side text-3xl font-game">TEMPO</button>
-                <button onclick="verificar()" class="flex-1 bg-green-600 text-white rounded-3xl btn-side text-3xl font-game">CONFIRMAR</button>
+        <div class="flex-1 flex p-8 gap-8">
+            <div class="w-64 flex flex-col gap-6">
+                <button onclick="startTimer()" class="flex-1 bg-orange-500 text-white btn-side text-4xl font-game">TEMPO</button>
+                <button onclick="verificar()" class="flex-1 bg-green-600 text-white btn-side text-4xl font-game">OK!</button>
             </div>
             
-            <div class="flex-1 bg-white rounded-[60px] p-12 shadow-inner flex flex-col border-8 border-purple-200">
-                <div id="info" class="bg-purple-900 text-white px-6 py-2 rounded-full text-lg font-black w-fit mb-6"></div>
-                <div id="enunciado" class="text-5xl font-bold text-purple-900 mb-10 leading-tight"></div>
-                <div id="alternativas" class="grid grid-cols-1 gap-2"></div>
+            <div class="flex-1 bg-white rounded-[80px] p-16 shadow-[inset_0_10px_30px_rgba(0,0,0,0.1)] flex flex-col border-[12px] border-purple-200">
+                <div id="info" class="bg-purple-900 text-white px-10 py-3 rounded-full text-2xl font-black w-fit mb-10 shadow-lg"></div>
+                <div id="enunciado" class="text-6xl font-bold text-purple-900 mb-12 leading-tight tracking-tight"></div>
+                <div id="alternativas" class="grid grid-cols-1 gap-4"></div>
             </div>
         </div>
     </div>
 
     <div id="spec-ui" class="hidden status-card">
-        <div class="text-5xl mb-2">🔥</div>
-        <div id="spec-title" class="text-red-600 font-game text-3xl uppercase italic">ESPECIAL</div>
-        <p id="spec-desc" class="text-purple-950 font-black text-sm mt-2 uppercase"></p>
+        <div class="text-7xl mb-4">🔥</div>
+        <div id="spec-title" class="text-red-600 font-game text-4xl uppercase italic">ESPECIAL</div>
+        <p id="spec-desc" class="text-purple-950 font-black text-lg mt-4 uppercase"></p>
     </div>
 
     <script>
@@ -86,7 +128,7 @@
         function carregarEIniciar() {
             db.ref('quiz_atual').once('value').then(snap => {
                 const dados = snap.val();
-                if(!dados) return alert("Adicione perguntas no Dashboard primeiro!");
+                if(!dados) return alert("Erro: Cadastre perguntas na sua Dash primeiro!");
                 perguntas = Object.values(dados);
                 document.getElementById('setup').classList.add('hidden');
                 document.getElementById('game-ui').classList.remove('hidden');
@@ -99,18 +141,19 @@
 
         function show() {
             time = null; selec = null; bloqueado = false;
+            document.querySelectorAll('[id^="area"]').forEach(e => e.style.borderColor='transparent');
             const p = perguntas[atual], s = document.getElementById('spec-ui');
             s.classList.add('hidden');
             if(p.regra !== 'normal') {
                 s.classList.remove('hidden');
                 document.getElementById('spec-desc').innerText = p.regra === 'dobra' ? "ACERTO VALE O DOBRO!" : "ERRO ZERA O PLACAR!";
             }
-            document.getElementById('info').innerText = `PERGUNTA ${atual+1} DE ${perguntas.length}`;
+            document.getElementById('info').innerText = `PERGUNTA ${atual+1} / ${perguntas.length}`;
             document.getElementById('enunciado').innerText = p.q;
             const cont = document.getElementById('alternativas'); cont.innerHTML = '';
             p.opt.forEach((o, i) => {
                 const b = document.createElement('button'); b.className = "alt-btn";
-                b.innerHTML = `<span class='bg-purple-900 text-white w-12 h-12 rounded-full inline-flex items-center justify-center mr-6'>${String.fromCharCode(65+i)}</span> ${o}`;
+                b.innerHTML = `<span class='bg-purple-900 text-white w-16 h-16 rounded-full inline-flex items-center justify-center mr-8 shadow-lg'>${String.fromCharCode(65+i)}</span> ${o}`;
                 b.onclick = () => { if(!time || bloqueado) return; document.querySelectorAll('.alt-btn').forEach(x => x.classList.remove('selected-alt')); b.classList.add('selected-alt'); selec = i; };
                 cont.appendChild(b);
             });
@@ -122,19 +165,18 @@
             if(selec === null || bloqueado) return;
             bloqueado = true;
             const p = perguntas[atual], ok = (selec === p.c);
-            const btn = document.querySelectorAll('.alt-btn')[selec];
-            btn.classList.add(ok ? 'correct' : 'wrong');
+            document.querySelectorAll('.alt-btn')[selec].classList.add(ok ? 'correct' : 'wrong');
             
             setTimeout(() => {
-                let valor = p.regra === 'dobra' && ok ? p.pts * 2 : p.pts;
-                if(ok) { if(time === 'A') ptsA += valor; else ptsB += valor; }
+                let v = (p.regra === 'dobra' && ok) ? p.pts * 2 : p.pts;
+                if(ok) { if(time === 'A') ptsA += v; else ptsB += v; }
                 else if(p.regra === 'tudonada') { if(time === 'A') ptsA = 0; else ptsB = 0; }
                 
                 document.getElementById('ptsA').innerText = ptsA;
                 document.getElementById('ptsB').innerText = ptsB;
                 
-                if(atual < perguntas.length - 1) { atual++; show(); } else { alert("FIM DE JOGO!"); location.reload(); }
-            }, 2000);
+                if(atual < perguntas.length - 1) { atual++; show(); } else { alert("FIM DO QUIZ!"); location.reload(); }
+            }, 2500);
         }
     </script>
 </body>
