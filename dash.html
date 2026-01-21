@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Macro - Teachei Zap</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --green: #34C759; --dark: #000; --bg: #F2F2F7; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); margin: 0; padding: 0; }
+        
+        /* TESTEIRA AMPLIADA */
+        .header-teachei { 
+            background-color: var(--green); 
+            width: 100%; 
+            padding: 20px 0; /* Aumentado */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .logo-img { max-height: 80px; width: auto; }
+
+        .container-dash { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        h2 { font-weight: 900; color: #333; margin-bottom: 30px; text-align: center; }
+        .grid-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .chart-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; }
+        .chart-card h6 { font-weight: 800; margin-bottom: 15px; color: #555; font-size: 0.9rem; min-height: 40px; }
+        canvas { max-height: 200px; }
+        .btn-export { background: var(--dark); color: #fff; border: none; border-radius: 10px; padding: 12px 25px; font-weight: 800; transition: 0.3s; }
+        .card-resposta { background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; }
+        .card-resposta h5 { color: var(--green); font-weight: 900; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; padding-right: 40px; }
+        .btn-delete { position: absolute; top: 20px; right: 20px; background: #FF3B30; color: white; border: none; border-radius: 8px; width: 32px; height: 32px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .label { font-weight: 700; color: #8E8E93; display: block; font-size: 0.75rem; text-transform: uppercase; }
+        .value { color: var(--dark); font-weight: 600; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <header class="header-teachei">
+        <img src="logo.png" class="logo-img">
+    </header>
+
+    <div class="container-dash">
+        <h2>Análise de Campo Macro</h2>
+        <div class="grid-charts">
+            <div class="chart-card"><h6>Dificuldade em achar contatos?</h6><canvas id="c1"></canvas></div>
+            <div class="chart-card"><h6>Onde costuma procurar?</h6><canvas id="c2"></canvas></div>
+            <div class="chart-card"><h6>Frequência de uso (Grátis)</h6><canvas id="c3"></canvas></div>
+            <div class="chart-card"><h6>Profissões Cadastradas</h6><canvas id="c4"></canvas></div>
+            <div class="chart-card"><h6>Tem profissão paralela?</h6><canvas id="c5"></canvas></div>
+            <div class="chart-card"><h6>Pagaria R$ 24,90 / 3 meses?</h6><canvas id="c6"></canvas></div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div id="total" style="font-weight: 800; color: #8E8E93;">Carregando dados...</div>
+            <button class="btn-export" onclick="exportarExcel()">📊 EXPORTAR EXCEL</button>
+        </div>
+        <div id="listaRespostas"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyAhEpxGDQihla_rxkpxG3Pggeh51fvxdPY",
+            authDomain: "teachei-pesquisa.firebaseapp.com",
+            projectId: "teachei-pesquisa",
+            storageBucket: "teachei-pesquisa.firebasestorage.app",
+            messagingSenderId: "113171078649",
+            appId: "1:113171078649:web:e1d7c7ebad614fd4c47128"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let charts = {};
+        let dadosExport = [];
+        const colors = ['#34C759', '#007AFF', '#FF9500', '#FF3B30', '#AF52DE', '#5856D6'];
+        function createPie(id, dataObj) {
+            const ctx = document.getElementById(id).getContext('2d');
+            if (charts[id]) charts[id].destroy();
+            charts[id] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(dataObj),
+                    datasets: [{ data: Object.values(dataObj), backgroundColor: colors }]
+                },
+                options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } } }
+            });
+        }
+        window.excluirCadastro = async (id) => {
+            if(confirm("Deseja realmente excluir este cadastro?")) {
+                try { await deleteDoc(doc(db, "respostas", id)); } catch (error) { alert("Erro ao excluir."); }
+            }
+        };
+        onSnapshot(query(collection(db, "respostas"), orderBy("data", "desc")), (snap) => {
+            const lista = document.getElementById('listaRespostas');
+            lista.innerHTML = "";
+            dadosExport = [];
+            let counts = { p1:{}, p2:{}, p3:{}, p4:{}, p5:{}, p6:{} };
+            snap.forEach(docSnap => {
+                const r = docSnap.data();
+                const id = docSnap.id;
+                dadosExport.push(r);
+                ['p1','p2','p3','p4','p5','p6'].forEach(p => {
+                    if(r[p]) counts[p][r[p]] = (counts[p][r[p]] || 0) + 1;
+                });
+                const card = document.createElement('div');
+                card.className = 'card-resposta';
+                card.innerHTML = `<button class="btn-delete" onclick="excluirCadastro('${id}')">✕</button>
+                    <h5>${r.nome}</h5>
+                    <div class="info-grid">
+                        <div><span class="label">Dificuldade</span><span class="value">${r.p1 || '-'}</span></div>
+                        <div><span class="label">Busca em</span><span class="value">${r.p2 || '-'}</span></div>
+                        <div><span class="label">Frequência</span><span class="value">${r.p3 || '-'}</span></div>
+                        <div><span class="label">Profissão</span><span class="value">${r.p4 || '-'}</span></div>
+                        <div><span class="label">Extra</span><span class="value">${r.p5 || '-'}</span></div>
+                        <div><span class="label">Pagaria</span><span class="value">${r.p6 || '-'}</span></div>
+                    </div>`;
+                lista.appendChild(card);
+            });
+            document.getElementById('total').innerText = `${snap.size} RESPOSTAS`;
+            ['p1','p2','p3','p4','p5','p6'].forEach((p, i) => createPie(`c${i+1}`, counts[p]));
+        });
+        window.exportarExcel = () => {
+            let csv = "Nome;Dificuldade;Busca;Frequencia;Profissao;Extra;Pagaria;Data\n";
+            dadosExport.forEach(r => csv += `${r.nome};${r.p1};${r.p2};${r.p3};${r.p4};${r.p5};${r.p6};${r.data}\n`);
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+            link.setAttribute("download", "teachei_dados.csv");
+            link.click();
+        };
+    </script>
+</body>
+</html>
